@@ -1,42 +1,60 @@
-pipeline{
-    agent{
+pipeline {
+    agent {
         docker {
             image 'balaji510/jenkins-agent:1.0'
-            args '--user root -v /var/run/docker.sock:/var/run/docker.sock'
+            // IMPORTANT: do NOT run as root
+            args '-v /var/run/docker.sock:/var/run/docker.sock'
         }
     }
-    stages{
-        stage('Checkout'){
-            steps{
-                sh 'echo passed'
-                git branch: 'main', url: 'https://github.com/balaji-510/Final-CI-CD.git'
+
+    options {
+        cleanWs()   // fixes permission issues permanently
+    }
+
+    stages {
+
+        stage('Checkout') {
+            steps {
+                git branch: 'main',
+                    url: 'https://github.com/balaji-510/Final-CI-CD.git'
             }
         }
-        stage('Build'){
-            steps{
-                sh 'docker compose up -d'
-            }
-        }
-        stage('Running'){
-            steps{
-                sh'''
-                    cd shared
-                    mvn clean install
-                    cd ..
-                    mvn clean package -DskipTests
-                    echo parts_done....
+
+        stage('Build Maven Artifacts') {
+            steps {
+                sh '''
+                  set -e
+                  mvn clean package -DskipTests
                 '''
             }
         }
-        stage('Services'){
-            steps{
-                sh'''
-                    java -jar order-service/target/order-service-1.0.0.jar
-                    java -jar payment-service/target/payment-service-1.0.0.jar
-                    java -jar stock-service/target/stock-service-1.0.0.jar
-                    echo all_done.....
+
+        stage('Verify Artifacts') {
+            steps {
+                sh '''
+                  ls -lh */target/*.jar
                 '''
             }
         }
+
+        stage('Build Docker Images') {
+            steps {
+                sh '''
+                  docker build -t order-service:1.0 order-service
+                  docker build -t payment-service:1.0 payment-service
+                  docker build -t stock-service:1.0 stock-service
+                '''
+            }
+        }
+        stage('Push Images') {
+            steps {
+                sh '''
+                  docker push balaji510/order-service:1.0
+                  docker push balaji510/payment-service:1.0
+                  docker push balaji510/stock-service:1.0
+                '''
+            }
+        }
+        
     }
 }
