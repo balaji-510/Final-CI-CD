@@ -23,7 +23,7 @@ pipeline{
                     cd shared
                     mvn clean install
                     cd ..
-                    ./mvnw clean package -DskipTests
+                    mvn clean package -DskipTests
                     echo parts_done....
                 '''
             }
