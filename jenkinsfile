@@ -1,0 +1,42 @@
+pipeline{
+    agent{
+        docker {
+            image 'balaji510/jenkins-agent:1.0'
+            args '--user root -v /var/run/docker.sock:/var/run/docker.sock'
+        }
+    }
+    steps{
+        stage('Checkout'){
+            steps{
+                sh 'echo passed'
+                git branch: 'main', url: 'https://github.com/balaji-510/Final-CI-CD.git'
+            }
+        }
+        stage('Build'){
+            steps{
+                sh 'docker-compose up -d'
+            }
+        }
+        stage('Running'){
+            steps{
+                sh'''
+                    cd shared
+                    mvn clean install
+                    cd ..
+                    ./mvnw clean package -DskipTests
+                    echo parts_done....
+                '''
+            }
+        }
+        stage('Services'){
+            steps{
+                sh'''
+                    java -jar order-service/target/order-service-1.0.0.jar
+                    java -jar payment-service/target/payment-service-1.0.0.jar
+                    java -jar stock-service/target/stock-service-1.0.0.jar
+                    echo all_done.....
+                '''
+            }
+        }
+    }
+}
