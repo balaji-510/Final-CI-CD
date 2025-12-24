@@ -24,17 +24,25 @@ pipeline{
                     mvn clean install
                     cd ..
                     mvn clean package -DskipTests
+                    cd order-service
+                    mvn clean package -DskipTests
+                    cd ..
+                    cd payment-service
+                    mvn clean package -DskipTests
+                    cd ..
+                    cd stock-service
+                    mvn clean package -DskipTests
+                    cd ..
                     echo parts_done....
                 '''
             }
         }
         stage('Services'){
-            steps{
+            steps{ 
                 sh'''
-                    java -jar order-service/target/order-service-1.0.0.jar
-                    java -jar payment-service/target/payment-service-1.0.0.jar
-                    java -jar stock-service/target/stock-service-1.0.0.jar
-                    echo all_done.....
+                    docker build -t order-service:1.0 ./order-service/.
+                    docker build -t payment-service:1.0 ./payment-service/.
+                    docker build -t stock-service:1.0 ./stock-service/.
                 '''
             }
         }
