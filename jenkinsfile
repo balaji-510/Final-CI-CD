@@ -24,15 +24,6 @@ pipeline{
                     mvn clean install
                     cd ..
                     mvn clean package -DskipTests
-                    cd order-service
-                    mvn clean package -DskipTests
-                    cd ..
-                    cd payment-service
-                    mvn clean package -DskipTests
-                    cd ..
-                    cd stock-service
-                    mvn clean package -DskipTests
-                    cd ..
                     echo parts_done....
                 '''
             }
