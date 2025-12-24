@@ -12,11 +12,11 @@ pipeline{
                 git branch: 'main', url: 'https://github.com/balaji-510/Final-CI-CD.git'
             }
         }
-        stage('Build'){
+        /*stage('Build'){
             steps{
                 sh 'docker compose up -d'
             }
-        }
+        }*/
         stage('Running'){
             steps{
                 sh'''
