@@ -1,9 +1,16 @@
 pipeline{
     agent{
         docker {
-            image 'balaji510/jenkins-agent:1.0'
+            image 'balaji510/jenkins-agent:slim'
             args '--user root -v /var/run/docker.sock:/var/run/docker.sock'
         }
+    }
+    environment{
+        ECR_REPO_URI = '331867785866.dkr.ecr.us-east-1.amazonaws.com/docker_images' //URI of the REPO
+        ECR_REPO_NAME = 'docker_images'
+        AWS_ACCESS_KEY_ID = credentials('aws-cred') 
+        AWS_SECRET_ACCESS_KEY = credentials('aws-cred') 
+        AWS_REGION = 'us-east-1' 
     }
     stages{
         stage('Checkout'){
@@ -12,11 +19,6 @@ pipeline{
                 git branch: 'main', url: 'https://github.com/balaji-510/Final-CI-CD.git'
             }
         }
-        /*stage('Build'){
-            steps{
-                sh 'docker compose up -d'
-            }
-        }*/
         stage('Running'){
             steps{
                 sh'''
@@ -31,10 +33,39 @@ pipeline{
         stage('Services'){
             steps{ 
                 sh'''
-                    docker build -t order-service:1.0 ./order-service/.
-                    docker build -t payment-service:1.0 ./payment-service/.
-                    docker build -t stock-service:1.0 ./stock-service/.
+                    docker build -t order-service:latest ./order-service/.
+                    docker build -t payment-service:latest ./payment-service/.
+                    docker build -t stock-service:latest ./stock-service/.
                 '''
+            }
+        }
+        stage('Tagging Images'){
+            steps{
+                sh'''
+                    docker tag order-service:latest $ECR_REPO_URI:order-service
+                    docker tag payment-service:latest $ECR_REPO_URI:payment-service
+                    docker tag stock-service:latest $ECR_REPO_URI:stock-service
+                '''
+            }
+        }
+        stage('PUSHING IMAGE TO ECR') {
+            //login to AWS ECR and push the image
+            steps {
+                withCredentials([
+                    [$class: 'AmazonWebServicesCredentialsBinding',
+                    credentialsId: 'aws-cred']
+                ]) {        
+                    sh '''
+                    aws --version
+                    echo Login_Done...
+                    aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 331867785866.dkr.ecr.us-east-1.amazonaws.com
+                    echo Pass_set...
+                    docker push $ECR_REPO_URI:order-service
+                    docker push $ECR_REPO_URI:payment-service
+                    docker push $ECR_REPO_URI:stock-service
+                    echo done...
+                    '''
+                }
             }
         }
     }

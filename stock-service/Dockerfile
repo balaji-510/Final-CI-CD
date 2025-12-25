@@ -5,7 +5,7 @@ WORKDIR /app
 
 COPY target/stock-service-1.0.0.jar app.jar
 
-EXPOSE 8082
+EXPOSE 8087
 
 ADD https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/latest/download/opentelemetry-javaagent.jar \
     /app/opentelemetry-javaagent.jar

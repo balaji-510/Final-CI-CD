@@ -5,7 +5,7 @@ WORKDIR /app
 # Copy built JAR
 COPY target/payment-service-1.0.0.jar app.jar
 
-EXPOSE 8081
+EXPOSE 8086
 
 # Download OpenTelemetry agent
 ADD https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/latest/download/opentelemetry-javaagent.jar \

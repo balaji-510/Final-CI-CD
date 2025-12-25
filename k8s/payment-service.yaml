@@ -17,7 +17,7 @@ spec:
       - name: payment-service
         image: payment-service:1.0.0
         ports:
-        - containerPort: 8081
+        - containerPort: 8086
         env:
         - name: SPRING_KAFKA_BOOTSTRAP_SERVERS
           value: "kafka:9092"
@@ -28,13 +28,13 @@ spec:
         livenessProbe:
           httpGet:
             path: /actuator/health
-            port: 8081
+            port: 8086
           initialDelaySeconds: 60
           periodSeconds: 30
         readinessProbe:
           httpGet:
             path: /actuator/health
-            port: 8081
+            port: 8086
           initialDelaySeconds: 30
           periodSeconds: 10
         resources:
@@ -52,11 +52,11 @@ metadata:
   namespace: order-platform
   annotations:
     prometheus.io/scrape: "true"
-    prometheus.io/port: "8081"
+    prometheus.io/port: "8086"
     prometheus.io/path: "/actuator/prometheus"
 spec:
   selector:
     app: payment-service
   ports:
-  - port: 8081
-    targetPort: 8081
+  - port: 8086
+    targetPort: 8086
