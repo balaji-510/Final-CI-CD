@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: order-service
-        image: order-service:1.0.0
+        image: 331867785866.dkr.ecr.us-east-1.amazonaws.com/docker_images:order-service
         ports:
         - containerPort: 8085
         env:
