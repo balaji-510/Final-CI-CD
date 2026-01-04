@@ -6,11 +6,10 @@ pipeline{
         }
     }
     environment{
-        ECR_REPO_URI = '331867785866.dkr.ecr.us-east-1.amazonaws.com/docker_images' //URI of the REPO
-        ECR_REPO_NAME = 'docker_images'
-        AWS_ACCESS_KEY_ID = credentials('aws-cred') 
-        AWS_SECRET_ACCESS_KEY = credentials('aws-cred') 
-        AWS_REGION = 'us-east-1' 
+        ORDER_REPO_URI = '331867785866.dkr.ecr.us-east-1.amazonaws.com/intern-project/order-service' //URI of the REPO
+        PAYMENT_REPO_URI = '331867785866.dkr.ecr.us-east-1.amazonaws.com/intern-project/payment-service' //URI of the REPO
+        STOCK_REPO_URI = '331867785866.dkr.ecr.us-east-1.amazonaws.com/intern-project/stock-service' //URI of the REPO
+        AWS_REGION = 'us-east-1'
     }
     stages{
         stage('Checkout'){
@@ -22,29 +21,26 @@ pipeline{
         stage('Running'){
             steps{
                 sh'''
-                    cd shared
-                    mvn clean install
-                    cd ..
                     mvn clean package -DskipTests
                     echo parts_done....
                 '''
             }
         }
-        stage('Services'){
+        stage('Docker Images'){
             steps{ 
                 sh'''
-                    docker build -t order-service:latest ./order-service/.
-                    docker build -t payment-service:latest ./payment-service/.
-                    docker build -t stock-service:latest ./stock-service/.
+                    docker build -t order-service:${BUILD_NUMBER} ./order-service/.
+                    docker build -t payment-service:${BUILD_NUMBER} ./payment-service/.
+                    docker build -t stock-service:${BUILD_NUMBER} ./stock-service/.
                 '''
             }
         }
         stage('Tagging Images'){
             steps{
                 sh'''
-                    docker tag order-service:latest $ECR_REPO_URI:order-service
-                    docker tag payment-service:latest $ECR_REPO_URI:payment-service
-                    docker tag stock-service:latest $ECR_REPO_URI:stock-service
+                    docker tag order-service:${BUILD_NUMBER} ${ORDER_REPO_URI}:${BUILD_NUMBER}
+                    docker tag payment-service:${BUILD_NUMBER} ${PAYMENT_REPO_URI}:${BUILD_NUMBER}
+                    docker tag stock-service:${BUILD_NUMBER} ${STOCK_REPO_URI}:${BUILD_NUMBER}
                 '''
             }
         }
@@ -60,10 +56,34 @@ pipeline{
                     echo Login_Done...
                     aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 331867785866.dkr.ecr.us-east-1.amazonaws.com
                     echo Pass_set...
-                    docker push $ECR_REPO_URI:order-service
-                    docker push $ECR_REPO_URI:payment-service
-                    docker push $ECR_REPO_URI:stock-service
+                    docker push ${ORDER_REPO_URI}:${BUILD_NUMBER}
+                    docker push ${PAYMENT_REPO_URI}:${BUILD_NUMBER}
+                    docker push ${STOCK_REPO_URI}:${BUILD_NUMBER}
                     echo done...
+                    '''
+                }
+            }
+        }
+        stage('Update Deployment File') {
+            environment {
+                GIT_REPO_NAME = "Final-CI-CD"
+                GIT_USER_NAME = "balaji-510"
+            }
+            steps {
+                withCredentials([string(credentialsId: 'github', variable: 'GITHUB_TOKEN')]) {
+                    sh '''
+                        git config --global --add safe.directory "$WORKSPACE"
+                        git config user.email "balaji_from_jenkins@gmail.com"
+                        git config user.name "Balaji G"
+
+                        sed -i "s|image: .*order-service:.*|image: ${ORDER_REPO_URI}:${BUILD_NUMBER}|" k8s/order-service.yaml
+                        sed -i "s|image: .*payment-service:.*|image: ${PAYMENT_REPO_URI}:${BUILD_NUMBER}|" k8s/payment-service.yaml
+                        sed -i "s|image: .*stock-service:.*|image: ${STOCK_REPO_URI}:${BUILD_NUMBER}|" k8s/stock-service.yaml
+
+                        git add k8s/*.yaml
+
+                        git commit -m "Update deployment image to version ${BUILD_NUMBER}"
+                        git push https://${GITHUB_TOKEN}@github.com/${GIT_USER_NAME}/${GIT_REPO_NAME} HEAD:main
                     '''
                 }
             }

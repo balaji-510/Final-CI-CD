@@ -15,28 +15,34 @@ spec:
     spec:
       containers:
       - name: order-service
-        image: 331867785866.dkr.ecr.us-east-1.amazonaws.com/docker_images:order-service
+        image: 331867785866.dkr.ecr.us-east-1.amazonaws.com/intern-project/order-service:1.0.0
         ports:
         - containerPort: 8085
+
         env:
         - name: SPRING_KAFKA_BOOTSTRAP_SERVERS
-          value: "kafka:9092"
+          value: kafka:9092
+
         - name: OTEL_SERVICE_NAME
-          value: "order-service"
+          value: order-service
+
         - name: OTEL_EXPORTER_OTLP_ENDPOINT
-          value: "http://jaeger:14268/api/traces"
+          value: http://otel-collector:4318
+
         livenessProbe:
           httpGet:
-            path: /actuator/health
+            path: /actuator/health/liveness
             port: 8085
           initialDelaySeconds: 60
           periodSeconds: 30
+
         readinessProbe:
           httpGet:
-            path: /actuator/health
+            path: /actuator/health/readiness
             port: 8085
           initialDelaySeconds: 30
           periodSeconds: 10
+
         resources:
           requests:
             memory: "512Mi"
@@ -60,4 +66,4 @@ spec:
   ports:
   - port: 8085
     targetPort: 8085
-  type: LoadBalancer
+  type: ClusterIP

@@ -15,28 +15,34 @@ spec:
     spec:
       containers:
       - name: payment-service
-        image: 331867785866.dkr.ecr.us-east-1.amazonaws.com/docker_images:payment-service
+        image: 331867785866.dkr.ecr.us-east-1.amazonaws.com/intern-project/payment-service:1.0.0
         ports:
         - containerPort: 8086
+
         env:
         - name: SPRING_KAFKA_BOOTSTRAP_SERVERS
-          value: "kafka:9092"
+          value: kafka:9092
+
         - name: OTEL_SERVICE_NAME
-          value: "payment-service"
+          value: payment-service
+
         - name: OTEL_EXPORTER_OTLP_ENDPOINT
-          value: "http://jaeger:14268/api/traces"
+          value: http://otel-collector:4318
+
         livenessProbe:
           httpGet:
-            path: /actuator/health
+            path: /actuator/health/liveness
             port: 8086
           initialDelaySeconds: 60
           periodSeconds: 30
+
         readinessProbe:
           httpGet:
-            path: /actuator/health
+            path: /actuator/health/readiness
             port: 8086
           initialDelaySeconds: 30
           periodSeconds: 10
+
         resources:
           requests:
             memory: "512Mi"
@@ -55,6 +61,7 @@ metadata:
     prometheus.io/port: "8086"
     prometheus.io/path: "/actuator/prometheus"
 spec:
+  type: ClusterIP
   selector:
     app: payment-service
   ports:
