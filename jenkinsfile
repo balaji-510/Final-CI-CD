@@ -5,9 +5,6 @@ pipeline{
             args '--user root -v /var/run/docker.sock:/var/run/docker.sock'
         }
     }
-    options{
-        cleanWs()
-    }
     environment{
         ORDER_REPO_URI = '331867785866.dkr.ecr.us-east-1.amazonaws.com/intern-project/order-service' //URI of the REPO
         PAYMENT_REPO_URI = '331867785866.dkr.ecr.us-east-1.amazonaws.com/intern-project/payment-service' //URI of the REPO
@@ -73,7 +70,7 @@ pipeline{
                 GIT_USER_NAME = "balaji-510"
             }
             steps {
-                withCredentials([string(credentialsId: 'github', variable: 'GITHUB_TOKEN')]) {
+                withCredentials([string(credentialsId: 'github1', variable: 'GITHUB_TOKEN')]) {
                     sh '''
                         git config --global --add safe.directory "$WORKSPACE"
                         git config user.email "balaji_from_jenkins@gmail.com"
@@ -90,6 +87,17 @@ pipeline{
                     '''
                 }
             }
+        }
+    }
+    post {
+        // Clean after build
+        always {
+            cleanWs(cleanWhenNotBuilt: false,
+                    deleteDirs: true,
+                    disableDeferredWipeout: true,
+                    notFailBuild: true,
+                    patterns: [[pattern: '.gitignore', type: 'INCLUDE'],
+                               [pattern: '.propsfile', type: 'EXCLUDE']])
         }
     }
 }
