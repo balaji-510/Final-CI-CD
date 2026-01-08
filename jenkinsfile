@@ -92,6 +92,7 @@ pipeline{
     post {
         // Clean after build
         always {
+            sh ''' sudo rm -rf /var/lib/jenkins/workspace/Final '''
             cleanWs(cleanWhenNotBuilt: false,
                     deleteDirs: true,
                     disableDeferredWipeout: true,
