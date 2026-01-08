@@ -17,7 +17,6 @@ pipeline{
     stages{
         stage('Checkout'){
             steps{
-                cleanWs()
                 git branch: 'main', url: 'https://github.com/balaji-510/Final-CI-CD.git'
             }
         }
@@ -88,6 +87,7 @@ pipeline{
                         git commit -m "Update deployment image to version ${BUILD_NUMBER}"
                         git push https://${GITHUB_TOKEN}@github.com/${GIT_USER_NAME}/${GIT_REPO_NAME} HEAD:main
                     '''
+                    cleanWs()
                 }
             }
         }
