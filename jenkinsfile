@@ -77,8 +77,8 @@ pipeline{
                         git config --global --add safe.directory "$WORKSPACE"
                         git config user.email "balaji_from_jenkins@gmail.com"
                         git config user.name "Balaji G"
-
-                        git pull origin main
+                        git clone https://${GITHUB_TOKEN}@github.com/${GIT_USER_NAME}/Manifest-files manifests
+                        cd manifests
                         sed -i "s|image: .*order-service:.*|image: ${ORDER_REPO_URI}:${BUILD_NUMBER}|" k8s/order-service.yaml
                         sed -i "s|image: .*payment-service:.*|image: ${PAYMENT_REPO_URI}:${BUILD_NUMBER}|" k8s/payment-service.yaml
                         sed -i "s|image: .*stock-service:.*|image: ${STOCK_REPO_URI}:${BUILD_NUMBER}|" k8s/stock-service.yaml
