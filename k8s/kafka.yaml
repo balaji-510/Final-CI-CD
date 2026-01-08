@@ -23,13 +23,6 @@ spec:
           value: "2181"
         - name: ZOOKEEPER_TICK_TIME
           value: "2000"
-        resources:
-          requests:
-            cpu: "100m"
-            memory: "256Mi"
-          limits:
-            cpu: "300m"
-            memory: "512Mi"
 ---
 apiVersion: v1
 kind: Service
@@ -37,7 +30,6 @@ metadata:
   name: zookeeper
   namespace: order-platform
 spec:
-  type: ClusterIP
   selector:
     app: zookeeper
   ports:
