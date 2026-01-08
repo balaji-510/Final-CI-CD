@@ -11,9 +11,13 @@ pipeline{
         STOCK_REPO_URI = '331867785866.dkr.ecr.us-east-1.amazonaws.com/intern-project/stock-service' //URI of the REPO
         AWS_REGION = 'us-east-1'
     }
+    options {
+        skipDefaultCheckout(true)
+    }
     stages{
         stage('Checkout'){
             steps{
+                cleanWs()
                 sh 'echo passed'
                 git branch: 'main', url: 'https://github.com/balaji-510/Final-CI-CD.git'
             }
@@ -87,6 +91,17 @@ pipeline{
                     '''
                 }
             }
+        }
+    }
+    post {
+        // Clean after build
+        always {
+            cleanWs(cleanWhenNotBuilt: false,
+                    deleteDirs: true,
+                    disableDeferredWipeout: true,
+                    notFailBuild: true,
+                    patterns: [[pattern: '.gitignore', type: 'INCLUDE'],
+                               [pattern: '.propsfile', type: 'EXCLUDE']])
         }
     }
 }
